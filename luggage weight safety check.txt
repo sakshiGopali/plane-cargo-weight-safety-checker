@@ -1,0 +1,119 @@
+#gets maximum weight limit for the cargo plane
+WEIGHT_LIMIT = int(input("Enter the weight limit of the cargo plane: "))
+#the weight of items that will be removed if weight exceeds weight limit.
+ITEM_WEIGHT = 5
+
+#gets the crate data-number of crates,id,
+def get_crates():
+#list to store all data related to the crates
+    crates = []
+#gets the number of crates in str
+    count_text = input("How many crates are on the loading dock? ")
+#checks if the input is in the form of a whole number
+    if not count_text.isdigit():
+        print("Please enter a whole number.")
+        return crates
+#converts the str to int
+    crate_count = int(count_text)
+
+    if crate_count <= 0:
+        print("Please enter a number greater than zero.")
+        return crates
+
+    for i in range(crate_count):
+        print(f"\nEnter details for crate {i + 1}:")
+        #inputs id and removes spaces from the front and back of the string
+        crate_id = input("Crate ID: ").strip()
+       #The crate’s weight as text, before validation and conversion.
+        weight_text = input("Weight in pounds: ")
+       #The number of removable items as text, before validation and conversion.
+        items_text = input("Number of removable items: ")
+
+        # Check whether the items and weight is a positive whole number or decimal.
+        valid_weight = weight_text.replace(".", "", 1).isdigit()
+        valid_items = items_text.isdigit()
+        #if the weight and items are not positive whole number or decimal, then the crate is skipped
+        if not valid_weight or not valid_items:
+            print("Invalid weight or item count. Crate skipped.")
+            continue
+        #the final weight
+        weight = float(weight_text)
+        items = int(items_text)
+        #adds a crate to the crate list
+        crates.append({
+            "crate_id": crate_id,
+            "weight_lbs": weight,
+            "items_inside": items
+        })
+
+    return crates
+
+
+def process_crates(crates):
+    #Check each crate and unload items while it is overweight.
+    
+    #Number of crates under 50 lbs.
+    safe_count = 0
+    #Number of crates that remain above 50 lbs.
+    unsafe_count = 0
+    
+    for j in crates:
+        print(f"\nChecking crate {j['crate_id']}...")
+
+        if j["weight_lbs"] < WEIGHT_LIMIT:
+            print(f"Crate cleared. Weight is {j['weight_lbs']} lbs.")
+            safe_count += 1
+            continue
+
+        print(
+            f"Crate is at or above the {WEIGHT_LIMIT}-lb limit "
+            f"({j['weight_lbs']} lbs). Unloading..."
+        )
+
+        while (
+            j["weight_lbs"] >= WEIGHT_LIMIT
+            and j["items_inside"] > 0
+        ):
+            j["weight_lbs"] -= ITEM_WEIGHT
+            j["items_inside"] -= 1
+            print(
+                f"Removed one item. Current weight: "
+                f"{j['weight_lbs']} lbs; "
+                f"items remaining: {j['items_inside']}."
+            )
+
+        if j["weight_lbs"] < WEIGHT_LIMIT:
+            print(
+                f"Crate {j['crate_id']} is now within the limit. "
+                f"New weight: {j['weight_lbs']} lbs."
+            )
+            safe_count += 1
+        else:
+            print(
+                f"CRITICAL: Crate {j['crate_id']} is still unsafe "
+                f"at {j['weight_lbs']} lbs and has no removable "
+                f"items left."
+            )
+            unsafe_count += 1
+
+    return safe_count, unsafe_count
+
+#Display the final cargo safety summary
+def show_summary(safe_count, unsafe_count):
+    print("\n--- Cargo Weight Summary ---")
+    print(f"Crates within the weight limit: {safe_count}")
+    print(f"Crates still unsafe: {unsafe_count}")
+
+#main() — Runs the program in order
+def main():
+    crates = get_crates()
+
+    if not crates:
+        print("No crates were entered for checking.")
+        return
+
+    safe_count, unsafe_count = process_crates(crates)
+    show_summary(safe_count, unsafe_count)
+
+
+main()
